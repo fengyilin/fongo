@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.bson.BSON;
 import org.bson.BsonArray;
+import org.bson.BsonBoolean;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentReader;
 import org.bson.BsonDocumentWriter;
@@ -1159,8 +1160,16 @@ public class FongoDBCollection extends DBCollection {
   @Override
   public AggregationOutput aggregate(final List<? extends DBObject> pipeline, final ReadPreference readPreference) {
     final Aggregator aggregator = new Aggregator(this.fongoDb, this, pipeline);
-
-    return new AggregationOutput(aggregator.computeResult());
+    List<DBObject> results = aggregator.computeResult();
+		for (DBObject o : pipeline) {
+			if (o.containsKey("$project")) {
+				DBObject fields = (DBObject) o.get("$project");
+				if (!Util.isDBObjectEmpty(fields)) {
+					results = applyProjections(results, fields);
+				}
+			}
+		}
+    return new AggregationOutput(results);
   }
 
   @Override

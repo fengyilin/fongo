@@ -829,7 +829,9 @@ public class FongoConnection implements Connection {
   }
 
   private <T> T reencode(final Decoder<T> commandResultDecoder, final String resultField, final BsonArray results) {
-    return commandResultDecoder.decode(new BsonDocumentReader(new BsonDocument(resultField, results)), decoderContext());
+	  Document document = (Document) commandResultDecoder.decode(new BsonDocumentReader(new BsonDocument(resultField, results)), decoderContext());
+	  document.append("ok", true);
+	  return (T)document;
   }
 
   private <T> T reencode(final Decoder<T> commandResultDecoder, final String resultField, final DBObject result) {
